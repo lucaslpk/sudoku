@@ -27,18 +27,41 @@ def find_empty(bo) :
         for j in range(len(bo[0])) :
             if bo[i][j] == 0 :
                 return i, j    #row column tuple
+            
+    return False        # if no empties return False
 
 def is_valid(bo, num, pos) :
-    
-    for i in bo(pos[0]):          # this would work if we were inserting in this function. Since we will be inserting outside, pos tuple will hold the info where the number was inserted, and for that we need access to the index. So no enhanced for.
-        if i == num :
+    for i in range(len(bo)):         
+        if bo[pos[0]][i] == num and i != pos[1] :  # checking pos[0] row except pos[0][1] where we just inserted a num
             return False
         
     for j in range(len(bo)) :
-        if bo([j][pos[1]]) == num :
+        if bo[j][pos[1]] == num and j != pos[0] : # checking pos[1] column except pos[0][1] where we just inserted a num
             return False    
 
-    bo[pos[0], pos[1]] == num
+    for i in range(pos[0] // 3 * 3, pos[0] // 3 * 3 + 3) :
+        for j in range(pos[1] // 3 * 3, pos[1] // 3 * 3 + 3) :
+            if bo[i][j] == num and (i, j) != pos :
+                return False
+
+    return True
+
+def solve(bo) :
+    find = find_empty(bo)        # var name == "a find" (noun) == means a find returned by by the function, a find == tuple or False
+    if not find :                # non-zero value is interpreted as True in Python
+        return True
+    
+    for x in range(1, 10) :
+        if is_valid(bo, x, find) :
+            bo[find[0]][find[1]] = x
+
+            if solve(bo) :
+                return True
+
+            bo[find[0]][find[1]] = 0
+
+    return False        
 
 print_board(board)
-print(find_empty(board))            
+solve(board)            
+print_board(board)              # it will print the solved board, because lists are objects and therefore it was passed by reference.
