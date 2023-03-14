@@ -62,6 +62,7 @@ def solve(bo) :
 
     return False        
 
-print_board(board)
-solve(board)            
-print_board(board)              # it will print the solved board, because lists are objects and therefore it was passed by reference.
+def main() :
+    print_board(board)
+    solve(board)            
+    print_board(board)              # it will print the solved board, because lists are objects and therefore it was passed by reference.
