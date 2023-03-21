@@ -23,8 +23,8 @@ class Grid :
         self.cubes = [[Cube(self.board[i][j], i, j, width, height) for i in range(self.rows)] for j in range(self.cols)]   # tutorial code has ...)for j ] for i ] other way around - I wonder if it matters?
         self.width = width
         self.height = height
-        #self.model = None
-        self.selected = None
+        self.model = None           # model is a name of a temporary 9x9 boards with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
+        self.selected = None        # this will hold tuple with selected cube coordinates
 
     def draw(self, screen):
         # Draw Grid Lines
@@ -59,6 +59,17 @@ class Grid :
         else :
             return None    
 
+    def place(self, val) :
+        row, col = self.selected
+        if self.cubes[row][col].value == 0 :            # you can only check if an empty cube is selected
+            self.cubes[row][col].set(val)
+            self.update_model()
+            if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
+                return True
+            else :                                                          # or go back to board/model state before
+                self.cubes[row][col].set(0)
+                self.cubes[row][col].set_temp(0)
+                self.update_model()
 
 class Cube :
     rows = gameSize[0]    # these don't seem to be used at all 
@@ -155,9 +166,16 @@ def main() :
                 if event.key == pygame.K_DELETE :        
                     #board.clear()                              # there will be a board object soon
                     key = None
-                if event.key == pygame.K_RETURN :        
+                if event.key == pygame.K_RETURN :               # change temp to set
+                    i, j = board.selected
+                    if board.cubes[i][j].temp != 0 :            # if there is a temp value
+                        if board.place(board.cubes[i][j].temp) :# this runs the function and if it returns True or non-zero
+                            print("Success")
+                        else :
+                            print("Wrong")
+                            strikes += 1
                     key = None                                                                                                                                                                                
-
+    
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
