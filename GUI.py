@@ -83,11 +83,20 @@ def main() :
                 if event.key == pygame.K_9 :        
                     key = 9
                 if event.key == pygame.K_DELETE :        
-                    #board.clear()                    # there will be a board class object soon
+                    #board.clear()                              # there will be a board object soon
                     key = None
                 if event.key == pygame.K_RETURN :        
                     key = None                                                                                                                                                                                
 
+            if event.type == pygame.MOUSEBUTTONDOWN :
+                pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
+                clicked = board.click(pos)                      # feeds that tuple to click method of board instance
+                if clicked :                                    # which returns True/False
+                    board.select(clicked[0], clicked[1])        # calls select method with pos tuple values as arguments, this method sets board.selected to (row, col) tuple, set relevant cube.selected to True and all other cubes' "selected" to False
+                    key = None                                  # resets key to empty but I don't yet know why
+
+        if board.selected and key != None :                     # selected is a False or (row, col) tuple and a non-zero value  is True in python
+            board.sketch(key)
 
         redraw_window(screen, board, play_time, strikes, font)
         # if recColorRB < 255 :
