@@ -28,7 +28,7 @@ class Grid :
 
     def draw(self, screen):
         # Draw Grid Lines
-        gap = self.width / 9
+        gap = self.width / 9                    # hardcoded 9
         for i in range(self.rows+1):
             if i % 3 == 0 and i != 0:
                 thick = 4
@@ -49,13 +49,13 @@ class Grid :
         self.cubes[row][col].selected = True
         self.selected = (row, col)
 
-    def click(self, pos) :                              # validates if click is within board and returns (x,y) of a top left corner of relevant cube
+    def click(self, pos) :                              # validates if click is within board and returns coordinates of relevant cube
         if pos[0] < self.width and pos[1] < self.height :
             gap = self.width / 9                        # again nine is hardcoded !!!! and gap is used for bothe width and height
             x = pos[0] // gap
             y = pos[1] // gap 
             print((x,y))
-            return (int(x), int(y))                     # x & y are result of an integer division ==> is int() conversion necessary here?
+            return (int(x), int(y))                     # x & y are results of an integer division ==> is int() conversion necessary here?
         else :
             return None    
 
@@ -70,6 +70,26 @@ class Grid :
                 self.cubes[row][col].set(0)
                 self.cubes[row][col].set_temp(0)
                 self.update_model()
+                return False
+
+    def sketch(self, val) :
+        row, col = self.selected
+        self.cubes[row][col].set_temp(val)
+
+    def update_model(self) :
+        self.model = [[self.cubes[i][j].value for i in range(self.rows)] for j in range(self.cols)]    # again i and j reversed in tutorial's code
+
+    def clear(self) :
+        row, col = self.selected
+        if self.cubes[row][col].value == 0 :     # you cannot clear a black number
+            self.cubes[row][col].set_temp(0)
+
+    def is_finished(self) :
+        for i in range(self.rows) :
+            for j in range(self.cols) :
+                if self.cubes[i][j].value == 0
+                return False
+        return True
 
 class Cube :
     rows = gameSize[0]    # these don't seem to be used at all 
@@ -91,16 +111,17 @@ class Cube :
         self.temp = val
 
     def draw(self, screen) :
-        font = pygame.font.SysFont("comicsans", 40) 
 
         gap = self.width / 9            # what I mentioned earlier - strange. the only reason I see would be consistency with Grid gap
         x = self.col * gap              
         y = self.row * gap
 
         if self.temp !=0 and self.value == 0 :                    # you can only sketch in a temp number in an empty cube
+            font = pygame.font.SysFont("comicsans", 20) 
             text = font.render(str(self.temp), 1, (128,128,128))
             screen.blit(text, (x+5, y+5))
         elif self.value !=0 :                                     # and if value is set, it is set in stone and drawn in black
+            font = pygame.font.SysFont("comicsans", 40) 
             text = font.render(str(self.value), 1, (0,0,0))
             screen.blit(text, (x + gap/2 - text.get_width()/2, y + gap/2 - text.get_height()/2))
 
@@ -175,7 +196,7 @@ def main() :
                             print("Wrong")
                             strikes += 1
                     key = None                                                                                                                                                                                
-    
+
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
