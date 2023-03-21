@@ -5,10 +5,22 @@ pygame.font.init()          #pygame tutorial says we need to initialize the whol
 gameSize = (9, 9)
 
 class Grid :
+    board = [
+    [0,0,2,0,8,0,0,6,0],
+    [0,5,6,9,1,7,0,3,0],
+    [0,4,0,0,5,0,8,7,1],
+    [0,9,0,0,0,0,6,0,0],
+    [6,7,1,0,9,5,2,0,0],
+    [0,0,0,0,2,0,1,0,0],
+    [1,6,7,0,3,0,5,9,0],
+    [4,8,0,0,7,0,3,0,0],
+    [0,2,5,4,6,0,0,0,0]
+    ]
+
     def __init__(self, rows, cols, width, height):
         self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment
         self.cols = cols
-        self.cubes = # this will be filled with a list comprehension creating a 9x9 matrix of 'cube' class objects
+        self.cubes = [[Cube(self.board[i][j], i, j, width, height) for i in range(self.rows)] for j in range(self.cols)]   # tutorial code has ...)for j ] for i ] other way around - I wonder if it matters?
         self.width = width
         self.height = height
         #self.model = None
@@ -25,13 +37,28 @@ class Grid :
             pygame.draw.line(screen, (0,0,0), (0, i*gap), (self.width, i*gap), thick)
             pygame.draw.line(screen, (0,0,0), (i * gap, 0), (i * gap, self.height), thick)
 
+        for i in range(self.rows) :
+            for j in range(self.cols) :
+                self.cubes[i][j].draw(screen)
+
     def select(self, row, col) :
         for i in range(self.rows) :                   # initially hardcoded as range(1,10) but later changed in accordance with tutorial's code, in case different size sudokus later
             for j in range(self.cols) :
-                cubes[i][j].selected = False
+                self.cubes[i][j].selected = False
 
-        cubes[row][col].selected = True
+        self.cubes[row][col].selected = True
         self.selected = (row, col)
+
+    def click(self, pos) :                              # validates if click is within board and returns (x,y) of a top left corner of relevant cube
+        if pos[0] < self.width and pos[1] < self.height :
+            gap = self.width / 9                        # again nine is hardcoded !!!! and gap is used for bothe width and height
+            x = pos[0] // gap
+            y = pos[1] // gap 
+            print((x,y))
+            return (int(x), int(y))                     # x & y are result of an integer division ==> is int() conversion necessary here?
+        else :
+            return None    
+
 
 class Cube :
     rows = gameSize[0]    # these don't seem to be used at all 
@@ -42,8 +69,8 @@ class Cube :
         self.temp = 0
         self.row = row
         self.col = col
-        self.width = 
-        self.height = 
+        self.width = width
+        self.height = height
         self.selected = False
 
     def set(self, val) :
@@ -134,7 +161,7 @@ def main() :
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
-                if clicked :                                    # which returns True/False
+                if clicked :                                    # which returns True/False Edit: it actually return a tuple (==> True) or None (==> False)
                     board.select(clicked[0], clicked[1])        # calls select method with pos tuple values as arguments, this method sets board.selected to (row, col) tuple, set relevant cube.selected to True and all other cubes' "selected" to False
                     key = None                                  # resets key to empty but I don't yet know why
 
