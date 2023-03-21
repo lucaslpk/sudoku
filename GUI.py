@@ -6,13 +6,13 @@ pygame.font.init()          #pygame tutorial says we need to initialize the whol
 class Grid :
 
     def __init__(self, rows, cols, width, height):
-        self.rows = rows
+        self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment
         self.cols = cols
-        #self.cubes =
+        self.cubes = # this will be filled with a list comprehension creating a 9x9 matrix of 'cube' class objects
         self.width = width
         self.height = height
         #self.model = None
-        #self.selected = None
+        self.selected = None
 
     def draw(self, screen):
         # Draw Grid Lines
@@ -24,6 +24,14 @@ class Grid :
                 thick = 1
             pygame.draw.line(screen, (0,0,0), (0, i*gap), (self.width, i*gap), thick)
             pygame.draw.line(screen, (0,0,0), (i * gap, 0), (i * gap, self.height), thick)
+
+    def select(self, row, col) :
+        for i in range(self.rows) :                   # initially hardcoded as range(1,10) but later changed in accordance with tutorial's code, in case different size sudokus later
+            for j in range(self.cols) :
+                cubes[i][j].selected = False
+
+        cubes[row][col].selected = True
+        self.selected = (row, col)
 
 
 def redraw_window(screen, board, play_time, strikes, font):
