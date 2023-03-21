@@ -14,7 +14,7 @@ class Grid :
         #self.model = None
         #self.selected = None
 
-    def draw(self, win):
+    def draw(self, screen):
         # Draw Grid Lines
         gap = self.width / 9
         for i in range(self.rows+1):
@@ -22,37 +22,49 @@ class Grid :
                 thick = 4
             else:
                 thick = 1
-            pygame.draw.line(win, (0,0,0), (0, i*gap), (self.width, i*gap), thick)
-            pygame.draw.line(win, (0,0,0), (i * gap, 0), (i * gap, self.height), thick)
+            pygame.draw.line(screen, (0,0,0), (0, i*gap), (self.width, i*gap), thick)
+            pygame.draw.line(screen, (0,0,0), (i * gap, 0), (i * gap, self.height), thick)
 
 
-def redraw_window(win, board, time, strikes):
-    win.fill((255,255,255))
-    font = pygame.font.SysFont("arial", 20)
-    text = font.render("Time: " + str(time), 1, (0,0,0))
-    win.blit(text, (380,560))
+def redraw_window(screen, board, play_time, strikes, font):
+    screen.fill((255,255,255))                      
+    text = font.render("Time: " + time_format(play_time), 1, (0,0,0))
+    screen.blit(text, (380,560))
     if strikes == 1 :
         text = font.render(str(strikes) + " strike", 1, (255,0,0))
-    if strikes != 1 :
+    else :
         text = font.render(str(strikes) + " strikes", 1, (255,0,0))
-    win.blit(text, (20,560))
+    screen.blit(text, (20,560))
+    board.draw(screen)
+
+def time_format(secs) :
+    sec = secs % 60
+    min = secs //60
+    hrs = min // 60
+    T_format = " " + str(min) + "m:" + str(sec) + "s"
+    return T_format 
 
 def main() :
-    win = pygame.display.set_mode((540,600))    # win is for window and NOT for a win/lose boolean as I initially thought. Size is a tuple.
+    screen = pygame.display.set_mode((540,600))    #  Size is a tuple.
     pygame.display.set_caption("Sudoku")
+    clock = pygame.time.Clock()
+    font = pygame.font.SysFont("arial", 20) 
     board = Grid(9, 9, 540, 540)
     key = None
     run = True
     start = time.time()
     strikes = 0
 
+    recColorRB = 0
+
     while run :
+        clock.tick(255)
         play_time = round(time.time() - start)
         for event in pygame.event.get() :           # this loop will continously check of any event has happened and filter throughjt the list of defined events
             if event.type == pygame.QUIT :
                 run = False
             if event.type == pygame.KEYDOWN :       # if event is a key press (or here keydown) check with the following which jey and what to do
-                if event.key == pygame.K_1 :        # REFACTOR with case
+                if event.key == pygame.K_1 :        # REFACTOR with case and with keys = pygame.key.get_pressed() z pierwszego video albo raczej jednokrotne nacisniecie bo pressed jest jak trzymiesz.
                     key = 1 
                 if event.key == pygame.K_2 :        
                     key = 2
@@ -77,7 +89,10 @@ def main() :
                     key = None                                                                                                                                                                                
 
 
-        redraw_window(win, board, play_time, strikes)
+        redraw_window(screen, board, play_time, strikes, font)
+        # if recColorRB < 255 :
+        #     pygame.draw.rect(screen, (recColorRB,255,recColorRB), (0,0, 540,600))
+        #     recColorRB += 1
         pygame.display.update()
 
 main()
