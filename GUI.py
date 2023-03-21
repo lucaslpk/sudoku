@@ -2,9 +2,9 @@ import pygame
 import time
 from solver import solve, is_valid
 pygame.font.init()          #pygame tutorial says we need to initialize the whole module i.e. pygame.init()
+gameSize = (9, 9)
 
 class Grid :
-
     def __init__(self, rows, cols, width, height):
         self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment
         self.cols = cols
@@ -33,7 +33,42 @@ class Grid :
         cubes[row][col].selected = True
         self.selected = (row, col)
 
+class Cube :
+    rows = gameSize[0]    # these don't seem to be used at all 
+    cols = gameSize[1]
 
+    def __init__(self, value, row, col, width, height) : # width and height of the cube seem to be the same as Grid's W&H and later there is a gap var used which is width / hardcoded 9 ???
+        self.value = value
+        self.temp = 0
+        self.row = row
+        self.col = col
+        self.width = 
+        self.height = 
+        self.selected = False
+
+    def set(self, val) :
+        self.value = val
+
+    def set_temp(self, val) :
+        self.temp = val
+
+    def draw(self, screen) :
+        font = pygame.font.SysFont("comicsans", 40) 
+
+        gap = self.width / 9            # what I mentioned earlier - strange. the only reason I see would be consistency with Grid gap
+        x = self.col * gap              
+        y = self.row * gap
+
+        if self.temp !=0 and self.value == 0 :                    # you can only sketch in a temp number in an empty cube
+            text = font.render(str(self.temp), 1, (128,128,128))
+            screen.blit(text, (x+5, y+5))
+        elif self.value !=0 :                                     # and if value is set, it is set in stone and drawn in black
+            text = font.render(str(self.value), 1, (0,0,0))
+            screen.blit(text, (x + gap/2 - text.get_width()/2, y + gap/2 - text.get_height()/2))
+
+        if self.selected :
+            pygame.draw.rect(screen, (255,0,0), (x, y, gap, gap), 3)
+            
 def redraw_window(screen, board, play_time, strikes, font):
     screen.fill((255,255,255))                      
     text = font.render("Time: " + time_format(play_time), 1, (0,0,0))
