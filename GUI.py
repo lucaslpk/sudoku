@@ -65,11 +65,14 @@ class Grid :
             self.cubes[row][col].set(val)
             self.update_model()
             if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
-                print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and the line 3 below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
+                self.cubes[row][col].cubeColorRB = 0
+                print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and similar line in 'else' below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
                 return True
             else :                                                          # or go back to board/model state before
                 print(is_valid(self.model, val, (row,col)), solve(self.model), 222)
-                self.cubes[row][col].set(0)
+                self.cubes[row][col].wrongNo = val
+                self.cubes[row][col].wrongNoColorGB = 0                     # it makes more sense to trigger both color beaviours (green cube/red No) from inside "place" method than from RETURN key event in main loop
+                self.cubes[row][col].set(0)                                 # because this is the namespace where val variable exists. You could trigger green cube form RETURN event in main loop (and I initially did) but not the red No. 
                 self.cubes[row][col].set_temp(0)
                 self.update_model()
                 return False
@@ -105,6 +108,9 @@ class Cube :
         self.width = width
         self.height = height
         self.selected = False
+        self.cubeColorRB = 255
+        self.wrongNo = None
+        self.wrongNoColorGB = 255
 
     def set(self, val) :
         self.value = val
@@ -121,9 +127,18 @@ class Cube :
             font = pygame.font.SysFont("comicsans", 20) 
             text = font.render(str(self.temp), 1, (128,128,128))
             screen.blit(text, (x+5, y+5))
-        elif self.value !=0 :                                     # and if value is set, it is set in stone and drawn in black
+        elif self.value !=0 or self.wrongNo :                                     # and if value is set, it is set in stone and drawn in black, and if wrong - in slowly disappearing red
             font = pygame.font.SysFont("comicsans", 40) 
-            text = font.render(str(self.value), 1, (0,0,0))
+            if self.cubeColorRB < 255 :
+                pygame.draw.rect(screen, (self.cubeColorRB,255,self.cubeColorRB), (x, y, gap, gap))
+                self.cubeColorRB += 5
+            if self.wrongNoColorGB < 255 :
+                text = font.render(str(self.wrongNo), 1, (255,self.wrongNoColorGB,self.wrongNoColorGB))
+                self.wrongNoColorGB += 5    
+                if self.wrongNoColorGB == 255 :
+                   self.wrongNo = None 
+            else :                
+                text = font.render(str(self.value), 1, (0,0,0))
             screen.blit(text, (x + gap/2 - text.get_width()/2, y + gap/2 - text.get_height()/2))
 
         if self.selected :
@@ -253,9 +268,11 @@ pygame.quit()
 # list of ideas:
 # autosolve button with animation
 # multiple "penciled in" numbers
-# behaviour for success - fading out green Cube
-# behaviour for strike - red bold number fading out
+# Added - behaviour for success - fading out green Cube
+# Added - behaviour for strike - red bold number fading out
+# Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
+# Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG
 # game over screen with quit and replay buttons
 # random solvable boards
 # difficulty levels with different amount of zeroes on board
-# maybe different sizes - first fin d existing sudokus with 116 and 1-16 ranges
+# maybe different sizes - first find existing sudokus with 1-6 and 1-16 ranges
