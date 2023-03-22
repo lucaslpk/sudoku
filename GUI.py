@@ -65,8 +65,10 @@ class Grid :
             self.cubes[row][col].set(val)
             self.update_model()
             if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
+                print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and the line 3 below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
                 return True
             else :                                                          # or go back to board/model state before
+                print(is_valid(self.model, val, (row,col)), solve(self.model), 222)
                 self.cubes[row][col].set(0)
                 self.cubes[row][col].set_temp(0)
                 self.update_model()
