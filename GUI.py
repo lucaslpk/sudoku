@@ -188,30 +188,35 @@ def main() :
                 if event.key == pygame.K_DELETE :        
                     board.clear()                             
                     key = None
-                if event.key == pygame.K_UP :
-                    row, col = board.selected
-                    if row == 0 :
-                        board.select(board.rows - 1, col)
-                    else:
-                        board.select(row - 1, col)
-                if event.key == pygame.K_DOWN :
-                    row, col = board.selected
-                    if row == board.rows - 1 :
-                        board.select(0, col)
-                    else:
-                        board.select(row + 1, col)
-                if event.key == pygame.K_LEFT :
-                    row, col = board.selected
-                    if col == 0 :
-                        board.select(row, board.cols - 1)
+                if event.key in (pygame.K_UP,pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT) :
+                    if not board.selected:
+                        board.select(0,0)
                     else :
-                        board.select(row, col - 1)
-                if event.key == pygame.K_RIGHT :
-                    row, col = board.selected
-                    if col == board.cols - 1 :
-                        board.select(row, 0)
-                    else :
-                        board.select(row, col + 1)
+                        row, col = board.selected
+                        if event.key == pygame.K_UP :
+                            if row == 0 :
+                                board.select(board.rows - 1, col)
+                            else:
+                                board.select(row - 1, col)
+                            key = None
+                        if event.key == pygame.K_DOWN :
+                            if row == board.rows - 1 :
+                                board.select(0, col)
+                            else:
+                                board.select(row + 1, col)
+                            key = None
+                        if event.key == pygame.K_LEFT :
+                            if col == 0 :
+                                board.select(row, board.cols - 1)
+                            else :
+                                board.select(row, col - 1)
+                            key = None
+                        if event.key == pygame.K_RIGHT :
+                            if col == board.cols - 1 :
+                                board.select(row, 0)
+                            else :
+                                board.select(row, col + 1)
+                            key = None
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) :               # change temp to set
                     i, j = board.selected
                     if board.cubes[i][j].temp != 0 :            # if there is a temp value
