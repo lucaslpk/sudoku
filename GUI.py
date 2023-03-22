@@ -66,10 +66,10 @@ class Grid :
             self.update_model()
             if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
                 self.cubes[row][col].cubeColorRB = 0
-                print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and similar line in 'else' below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
+                # print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and similar line in 'else' below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
                 return True
             else :                                                          # or go back to board/model state before
-                print(is_valid(self.model, val, (row,col)), solve(self.model), 222)
+                # print(is_valid(self.model, val, (row,col)), solve(self.model), 222)
                 self.cubes[row][col].wrongNo = val
                 self.cubes[row][col].wrongNoColorGB = 0                     # it makes more sense to trigger both color beaviours (green cube/red No) from inside "place" method than from RETURN key event in main loop
                 self.cubes[row][col].set(0)                                 # because this is the namespace where val variable exists. You could trigger green cube form RETURN event in main loop (and I initially did) but not the red No. 
@@ -172,8 +172,9 @@ def main() :
     run = True
     start = time.time()
     strikes = 0
-
+    startloop = 0
     recColorRB = 0
+    fpsAvg = []
 
     while run :
         clock.tick(255)
@@ -257,10 +258,19 @@ def main() :
             board.sketch(key)
 
         redraw_window(screen, board, play_time, strikes, font)
-        # if recColorRB < 255 :
-        #     pygame.draw.rect(screen, (recColorRB,255,recColorRB), (0,0, 540,600))
-        #     recColorRB += 1
+        # loop time measurement        
+        if len(fpsAvg) < 100 :
+            fpsAvg.append(round(1/(time.time() - startloop)))
+        else :
+            fpsAvg.pop(0)
+            fpsAvg.append(round(1/(time.time() - startloop)))
+        
+        text = font.render(str(sum(fpsAvg)/len(fpsAvg)) + " fps", 1, (0,0,0))
+        screen.blit(text, (100,560))
+        startloop = time.time()
+        # end time measurement
         pygame.display.update()
+        
 
 main()
 pygame.quit()
