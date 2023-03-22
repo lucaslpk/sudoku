@@ -183,7 +183,7 @@ def main() :
                     key = 7
                 if event.key in (pygame.K_8, pygame.K_KP8) :        
                     key = 8
-                if event.key in (pygame.K_9, pygame.K_KP9 ):        
+                if event.key in (pygame.K_9, pygame.K_KP9):        
                     key = 9
                 if event.key == pygame.K_DELETE :        
                     board.clear()                             
@@ -227,6 +227,10 @@ def main() :
                             strikes += 1
                     key = None                                                                                                                                                                                
 
+                    if board.is_finished():                     # need something more 'gameovery' with replay buttons etc.
+                        print("Game Over")
+                        run = False
+
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
@@ -245,3 +249,13 @@ def main() :
 
 main()
 pygame.quit()
+
+# list of ideas:
+# autosolve button with animation
+# multiple "penciled in" numbers
+# behaviour for success - fading out green Cube
+# behaviour for strike - red bold number fading out
+# game over screen with quit and replay buttons
+# random solvable boards
+# difficulty levels with different amount of zeroes on board
+# maybe different sizes - first fin d existing sudokus with 116 and 1-16 ranges
