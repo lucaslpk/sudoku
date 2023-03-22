@@ -20,7 +20,7 @@ class Grid :
     def __init__(self, rows, cols, width, height):
         self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment
         self.cols = cols
-        self.cubes = [[Cube(self.board[i][j], i, j, width, height) for i in range(self.rows)] for j in range(self.cols)]   # tutorial code has ...)for j ] for i ] other way around - I wonder if it matters?
+        self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(self.cols)] for i in range(self.rows)]  
         self.width = width
         self.height = height
         self.model = None           # model is a name of a temporary 9x9 boards with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
@@ -55,7 +55,7 @@ class Grid :
             x = pos[0] // gap
             y = pos[1] // gap 
             print((x,y))
-            return (int(x), int(y))                     # x & y are results of an integer division ==> is int() conversion necessary here?
+            return (int(y), int(x))                     # 1) y - vertical coordinate = row number, x horizontal coordinate = col number 2) x & y are results of an integer division ==> is int() conversion necessary here?
         else :
             return None    
 
@@ -77,7 +77,7 @@ class Grid :
         self.cubes[row][col].set_temp(val)
 
     def update_model(self) :
-        self.model = [[self.cubes[i][j].value for i in range(self.rows)] for j in range(self.cols)]    # again i and j reversed in tutorial's code
+        self.model = [[self.cubes[i][j].value for j in range(self.cols)] for i in range(self.rows)]    
 
     def clear(self) :
         row, col = self.selected
@@ -87,8 +87,8 @@ class Grid :
     def is_finished(self) :
         for i in range(self.rows) :
             for j in range(self.cols) :
-                if self.cubes[i][j].value == 0
-                return False
+                if self.cubes[i][j].value == 0 :
+                    return False
         return True
 
 class Cube :
@@ -111,7 +111,6 @@ class Cube :
         self.temp = val
 
     def draw(self, screen) :
-
         gap = self.width / 9            # what I mentioned earlier - strange. the only reason I see would be consistency with Grid gap
         x = self.col * gap              
         y = self.row * gap
@@ -166,28 +165,52 @@ def main() :
             if event.type == pygame.QUIT :
                 run = False
             if event.type == pygame.KEYDOWN :       # if event is a key press (or here keydown) check with the following which jey and what to do
-                if event.key == pygame.K_1 :        # REFACTOR with case and with keys = pygame.key.get_pressed() z pierwszego video albo raczej jednokrotne nacisniecie bo pressed jest jak trzymiesz.
+                if event.key in (pygame.K_1, pygame.K_KP1) :        # REFACTOR with case and with keys = pygame.key.get_pressed() z pierwszego video albo raczej jednokrotne nacisniecie bo pressed jest jak trzymiesz.
                     key = 1 
-                if event.key == pygame.K_2 :        
+                if event.key in (pygame.K_2, pygame.K_KP2) :        
                     key = 2
-                if event.key == pygame.K_3 :        
+                if event.key in (pygame.K_3, pygame.K_KP3) :        
                     key = 3
-                if event.key == pygame.K_4 :        
+                if event.key in (pygame.K_4, pygame.K_KP4) :        
                     key = 4
-                if event.key == pygame.K_5 :        
+                if event.key in (pygame.K_5, pygame.K_KP5) :        
                     key = 5
-                if event.key == pygame.K_6 :        
+                if event.key in (pygame.K_6, pygame.K_KP6) :        
                     key = 6
-                if event.key == pygame.K_7 :        
+                if event.key in (pygame.K_7, pygame.K_KP7) :        
                     key = 7
-                if event.key == pygame.K_8 :        
+                if event.key in (pygame.K_8, pygame.K_KP8) :        
                     key = 8
-                if event.key == pygame.K_9 :        
+                if event.key in (pygame.K_9, pygame.K_KP9 ):        
                     key = 9
                 if event.key == pygame.K_DELETE :        
-                    #board.clear()                              # there will be a board object soon
+                    board.clear()                             
                     key = None
-                if event.key == pygame.K_RETURN :               # change temp to set
+                if event.key == pygame.K_UP :
+                    row, col = board.selected
+                    if row == 0 :
+                        board.select(board.rows - 1, col)
+                    else:
+                        board.select(row - 1, col)
+                if event.key == pygame.K_DOWN :
+                    row, col = board.selected
+                    if row == board.rows - 1 :
+                        board.select(0, col)
+                    else:
+                        board.select(row + 1, col)
+                if event.key == pygame.K_LEFT :
+                    row, col = board.selected
+                    if col == 0 :
+                        board.select(row, board.cols - 1)
+                    else :
+                        board.select(row, col - 1)
+                if event.key == pygame.K_RIGHT :
+                    row, col = board.selected
+                    if col == board.cols - 1 :
+                        board.select(row, 0)
+                    else :
+                        board.select(row, col + 1)
+                if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) :               # change temp to set
                     i, j = board.selected
                     if board.cubes[i][j].temp != 0 :            # if there is a temp value
                         if board.place(board.cubes[i][j].temp) :# this runs the function and if it returns True or non-zero
@@ -200,7 +223,7 @@ def main() :
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
-                if clicked :                                    # which returns True/False Edit: it actually return a tuple (==> True) or None (==> False)
+                if clicked :                                    # which returns True/False Edit: it actually returns a tuple (==> True) or None (==> False)
                     board.select(clicked[0], clicked[1])        # calls select method with pos tuple values as arguments, this method sets board.selected to (row, col) tuple, set relevant cube.selected to True and all other cubes' "selected" to False
                     key = None                                  # resets key to empty but I don't yet know why
 
