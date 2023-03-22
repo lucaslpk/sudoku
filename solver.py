@@ -31,17 +31,17 @@ def find_empty(bo) :
     return False        # if no empties return False
 
 def is_valid(bo, num, pos) :
-    for i in bo[pos[0]]:         #returned to 'enhanced for' as per my initial "gut feeling"
-        if i == num :
-            return False
+    for i in range(len(bo)):                        # retrieving solution from Github commit 13/03/23
+        if bo[pos[0]][i] == num and i != pos[1] :   # as it turns out these operations are necessary if you check a board version (model) with 
+            return False                            # a temporary solution penciled in, as is the case when GUI.py calls funcitons imported from current file
         
     for j in range(len(bo)) :
-        if bo[j][pos[1]] == num :
+        if bo[j][pos[1]] == num and j != pos[0] :
             return False    
 
     for i in range(pos[0] // 3 * 3, pos[0] // 3 * 3 + 3) :
         for j in range(pos[1] // 3 * 3, pos[1] // 3 * 3 + 3) :
-            if bo[i][j] == num :
+            if bo[i][j] == num and (i, j) != pos:
                 return False
 
     return True
