@@ -201,7 +201,7 @@ def main() :
                     key = 8
                 if event.key in (pygame.K_9, pygame.K_KP9):        
                     key = 9
-                if event.key == pygame.K_DELETE :        
+                if event.key in (pygame.K_DELETE, pygame.K_BACKSPACE):        
                     board.clear()                             
                     key = None
                 if event.key in (pygame.K_UP,pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT) :
@@ -236,8 +236,11 @@ def main() :
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) :               # change temp to set
                     i, j = board.selected
                     if board.cubes[i][j].temp != 0 :            # if there is a temp value
-                        if board.place(board.cubes[i][j].temp) :# this runs the function and if it returns True or non-zero
+                        result = board.place(board.cubes[i][j].temp) # this runs the function and if it returns True or non-zero. Edit: result var is introduced so that we don't call the place() method each time we need to evaluate its result (twice)
+                        if result :
                             print("Success")
+                        elif result == None :                   # fix for "black-number-overwrite-attempt=strike" Bug
+                            pass
                         else :
                             print("Wrong")
                             strikes += 1
@@ -281,7 +284,7 @@ pygame.quit()
 # Added - behaviour for success - fading out green Cube
 # Added - behaviour for strike - red bold number fading out
 # Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
-# Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG
+# Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
 # game over screen with quit and replay buttons
 # random solvable boards
 # difficulty levels with different amount of zeroes on board
