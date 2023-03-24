@@ -1,7 +1,7 @@
 import pygame
 import time
 from solver import solve, is_valid
-pygame.font.init()          #pygame tutorial says we need to initialize the whole module i.e. pygame.init()
+pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
 
 class Grid :
@@ -23,8 +23,8 @@ class Grid :
         self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(self.cols)] for i in range(self.rows)]  
         self.width = width
         self.height = height
-        self.model = None           # model is a name of a temporary 9x9 boards with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
-        self.selected = None        # this will hold tuple with selected cube coordinates
+        self.model = None           # model is a name of a temporary 9x9 board with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
+        self.selected = None        # this will hold a tuple with selected cube coordinates
 
     def draw(self, screen):
         # Draw Grid Lines
@@ -102,7 +102,7 @@ class Cube :
 
     def __init__(self, value, row, col, width, height) : # width and height of the cube seem to be the same as Grid's W&H and later there is a gap var used which is width / hardcoded 9 ???
         self.value = value
-        self.temp = 0
+        self.temp = []
         self.row = row
         self.col = col
         self.width = width
@@ -111,22 +111,45 @@ class Cube :
         self.cubeColorRB = 255
         self.wrongNo = None
         self.wrongNoColorGB = 255
+        self.tempErrTimeOut = 0
 
     def set(self, val) :
         self.value = val
 
     def set_temp(self, val) :
-        self.temp = val
+        if val == 0 :                   # so taht we dont have te change every line where Cube set_temp method is called with arg = 0
+            self.temp.clear()
+        else :
+            if val not in self.temp :
+                self.temp.append(val)
+            else :
+                self.temp.pop(self.temp.index(val))
 
     def draw(self, screen) :
         gap = self.width / 9            # what I mentioned earlier - strange. the only reason I see would be consistency with Grid gap
         x = self.col * gap              
         y = self.row * gap
+        line = ''  
 
-        if self.temp !=0 and self.value == 0 :                    # you can only sketch in a temp number in an empty cube
-            font = pygame.font.SysFont("comicsans", 20) 
-            text = font.render(str(self.temp), 1, (128,128,128))
-            screen.blit(text, (x+5, y+5))
+        if len(self.temp) !=0 and self.value == 0 :                    # you can only sketch in a temp number in an empty cube Edit: legacy code "if self.temp !=0 and self.value == 0 "
+            font = pygame.font.SysFont("comicsans", 16) 
+            if self.tempErrTimeOut > 0 :
+                text = font.render("Enter", 1 , (128,128,128))      
+                screen.blit(text, (x+3, y+1))                            # hardcoded sizes and coordinates, works for fontsize 16, cube size 60x60, may not work for gam size 16x16
+                text = font.render("Only", 1 , (128,128,128))      
+                screen.blit(text, (x+3, y+19))
+                text = font.render("One No", 1 , (128,128,128))      
+                screen.blit(text, (x+3, y+37))
+                self.tempErrTimeOut -= 5                          
+                
+            else :
+                for i in range(int(gameSize[0]**0.5)) :                 # 0,1,2 for 9x9; 0,1,2,3 for 16x16 etc
+                    for j in range(1, int(gameSize[0]**0.5) + 1) :      # 1,2,3 for 9x9; 1,2,3,4 for 16x16 etc
+                        if int(i*gameSize[0]**0.5 + j) in self.temp :
+                            line = str(int(i*gameSize[0]**0.5 + j)) 
+                            text = font.render(line, 1 , (128,128,128))                                            
+                            screen.blit(text, (x+6 + (j-1)*20, y+1 + i*(16+2)))                                    # hardcoded sizes, works for fontsize 16, cube size 60x60, may not work for 16x16
+                
         elif self.value !=0 or self.wrongNo :                                     # and if value is set, it is set in stone and drawn in black, and if wrong - in slowly disappearing red
             font = pygame.font.SysFont("comicsans", 40) 
             if self.cubeColorRB < 255 :
@@ -235,8 +258,10 @@ def main() :
                             key = None
                 if event.key in (pygame.K_RETURN, pygame.K_KP_ENTER) :               # change temp to set
                     i, j = board.selected
-                    if board.cubes[i][j].temp != 0 :            # if there is a temp value
-                        result = board.place(board.cubes[i][j].temp) # this runs the function and if it returns True or non-zero. Edit: result var is introduced so that we don't call the place() method each time we need to evaluate its result (twice)
+                    if len(board.cubes[i][j].temp) == 0 :            # if there is a no temp value
+                        pass
+                    elif len(board.cubes[i][j].temp) == 1 :          # if there is exactly 1
+                        result = board.place(board.cubes[i][j].temp[0]) # this runs the function and if it returns True or non-zero. Edit: result var is introduced so that we don't call the place() method each time we need to evaluate its result (twice)
                         if result :
                             print("Success")
                         elif result == None :                   # fix for "black-number-overwrite-attempt=strike" Bug
@@ -244,6 +269,8 @@ def main() :
                         else :
                             print("Wrong")
                             strikes += 1
+                    else :
+                        board.cubes[i][j].tempErrTimeOut = 255
                     key = None                                                                                                                                                                                
 
                     if board.is_finished():                     # need something more 'gameovery' with replay buttons etc.
@@ -259,6 +286,7 @@ def main() :
 
         if board.selected and key != None :                     # selected is a False or (row, col) tuple and a non-zero value  is True in python
             board.sketch(key)
+            key = None
 
         redraw_window(screen, board, play_time, strikes, font)
         # loop time measurement        
@@ -280,11 +308,11 @@ pygame.quit()
 
 # list of ideas:
 # autosolve button with animation
-# multiple "penciled in" numbers
+# Added - multiple "penciled in" numbers
 # Added - behaviour for success - fading out green Cube
 # Added - behaviour for strike - red bold number fading out
 # Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
-# Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
+# Fixed Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
 # game over screen with quit and replay buttons
 # random solvable boards
 # difficulty levels with different amount of zeroes on board
