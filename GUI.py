@@ -90,10 +90,10 @@ class Grid :
             self.cubes[row][col].set_temp(0)
 
     def is_finished(self) :
-        for i in range(self.rows) :
-            for j in range(self.cols) :
-                if self.cubes[i][j].value == 0 :
-                    return False
+        # for i in range(self.rows) :
+        #     for j in range(self.cols) :
+        #         if self.cubes[i][j].value == 0 :
+        #             return False
         return True
 
 class Cube :
@@ -166,7 +166,35 @@ class Cube :
 
         if self.selected :
             pygame.draw.rect(screen, (255,0,0), (x, y, gap, gap), 3)
-            
+
+class Button : 
+    font = pygame.font.SysFont("arial", 20)
+
+    def __init__(self, text, x, y, w, h, enabled, screen):
+        self.text = text
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+        self.button_rect = pygame.rect.Rect(self.x, self.y, self.w, self.h)
+        self.enabled = enabled
+        self.draw(screen)
+
+    def draw(self, screen) :
+        button_text = self.font.render(self.text, True, ('black'))
+        
+        pygame.draw.rect(screen, 'gray', self.button_rect, 0, 5)            # solid grey
+        pygame.draw.rect(screen, 'black', self.button_rect, 2, 5)           # edge in black
+        screen.blit(button_text, (self.x + self.w//2 - button_text.get_width()//2, self.y + self.h//2 - button_text.get_height()//2))
+
+    def check_click(self) :
+        mouse_pos = pygame.mouse.get_pos()
+        left_click = pygame.mouse.get_pressed()[0]  # get_pressed method returns all mouse button presses, [0] index is for left MB
+        if left_click and self.button_rect.collidepoint(mouse_pos) and self.enabled :
+            return True
+        else:
+            return False
+
 def redraw_window(screen, board, play_time, strikes, font):
     screen.fill((255,255,255))                      
     text = font.render("Time: " + time_format(play_time), 1, (0,0,0))
@@ -185,8 +213,29 @@ def time_format(secs) :
     T_format = " " + str(min) + "m:" + str(sec) + "s"
     return T_format 
 
+def game_over(clock, screen):
+    pressed = False
+    font1 = pygame.font.SysFont("arial", 40) 
+    button_replay = Button("Play Again", 60, 650, 180, 60, True, screen)
+    button_quit = Button("Quit", 300, 650, 180, 60, True, screen)
+    while not pressed :
+        clock.tick(10)
+        for event in pygame.event.get() :
+            if event.type == pygame.QUIT :
+                pygame.quit()
+        if button_replay.check_click() :
+            main()
+        if button_quit.check_click() :
+            pygame.quit()
+        text = font1.render("W E L L   D O N E", 1, ("dark green"))
+        screen.blit(text, (540//2 - text.get_width()//2, 590))
+        button_replay.draw(screen)
+        button_quit.draw(screen)
+
+        pygame.display.update()
+
 def main() :
-    screen = pygame.display.set_mode((540,600))    #  Size is a tuple.
+    screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
     pygame.display.set_caption("Sudoku")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("arial", 20) 
@@ -274,8 +323,9 @@ def main() :
                     key = None                                                                                                                                                                                
 
                     if board.is_finished():                     # need something more 'gameovery' with replay buttons etc.
+                        game_over(clock, screen)
                         print("Game Over")
-                        run = False
+                        # run = False
 
             if event.type == pygame.MOUSEBUTTONDOWN :
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
@@ -312,7 +362,7 @@ pygame.quit()
 # Added - behaviour for success - fading out green Cube
 # Added - behaviour for strike - red bold number fading out
 # Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
-# Fixed Note: if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
+# Fixed - if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
 # game over screen with quit and replay buttons
 # random solvable boards
 # difficulty levels with different amount of zeroes on board
