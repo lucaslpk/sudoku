@@ -3,6 +3,8 @@ import time
 from solver import solve, is_valid
 pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
+screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
+clock = pygame.time.Clock()
 
 puzzle = [
     [0,0,2,0,8,0,0,6,0],
@@ -217,6 +219,39 @@ def time_format(secs) :
     T_format = " " + str(min) + "m:" + str(sec) + "s"
     return T_format 
 
+def init(clock, screen) :
+    pressed = False
+    font1 = pygame.font.SysFont("arial", 40) 
+    screen.fill((255,255,255)) 
+    button_easy = Button("Easy", 20, 550, 110, 60, True, screen)
+    button_normal = Button("Normal", 150, 550, 110, 60, True, screen)
+    button_hard = Button("Hard", 280, 550, 110, 60, True, screen)
+    button_expert = Button("Expert", 410, 550, 110, 60, True, screen)
+    button_quit = Button("Quit", 410, 650, 110, 60, True, screen)
+    buttons = [button_easy, button_normal, button_hard, button_expert, button_quit]
+
+    while not pressed :
+        clock.tick(10)
+        for event in pygame.event.get() :
+            if event.type == pygame.QUIT :
+                pygame.quit()
+        if button_easy.check_click() :
+            main()
+        if button_normal.check_click() :
+            pass
+        if button_hard.check_click():
+            pass    
+        if button_expert.check_click():
+            pass
+        if button_quit.check_click() :
+            pygame.quit()
+        text = font1.render("Choose difficulty level:", 1, ("dark green"))
+        screen.blit(text, (540//2 - text.get_width()//2, 440))
+        for button in buttons :
+            button.draw(screen)
+
+        pygame.display.update()
+
 def game_over(clock, screen):
     pressed = False
     font1 = pygame.font.SysFont("arial", 40) 
@@ -247,9 +282,7 @@ def game_over(clock, screen):
         pygame.display.update()
 
 def main() :
-    screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
     pygame.display.set_caption("Sudoku")
-    clock = pygame.time.Clock()
     font = pygame.font.SysFont("arial", 20) 
     board = Grid(puzzle,9, 9, 540, 540)
     button_restart = Button("Restart", 20, 650, 110, 60, True, screen)
@@ -377,8 +410,8 @@ def main() :
         # end time measurement
         pygame.display.update()
         
-
-main()
+init(clock, screen)
+#main()
 pygame.quit()
 
 # list of ideas:
