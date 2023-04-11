@@ -18,7 +18,7 @@ class Grid :
     ]
 
     def __init__(self, rows, cols, width, height):
-        self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment
+        self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment...
         self.cols = cols
         self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(self.cols)] for i in range(self.rows)]  
         self.width = width
@@ -97,7 +97,7 @@ class Grid :
         return True
 
 class Cube :
-    rows = gameSize[0]    # these don't seem to be used at all 
+    rows = gameSize[0]    # these don't seem to be used at all apart from here, would make snes if game had different sudoku sizes
     cols = gameSize[1]
 
     def __init__(self, value, row, col, width, height) : # width and height of the cube seem to be the same as Grid's W&H and later there is a gap var used which is width / hardcoded 9 ???
@@ -195,7 +195,7 @@ class Button :
         else:
             return False
 
-def redraw_window(screen, board, play_time, strikes, font):
+def redraw_window(screen, board, play_time, strikes, font, buttons):
     screen.fill((255,255,255))                      
     text = font.render("Time: " + time_format(play_time), 1, (0,0,0))
     screen.blit(text, (380,560))
@@ -205,6 +205,8 @@ def redraw_window(screen, board, play_time, strikes, font):
         text = font.render(str(strikes) + " strikes", 1, (255,0,0))
     screen.blit(text, (20,560))
     board.draw(screen)
+    for button in buttons :
+        button.draw(screen)
 
 def time_format(secs) :
     sec = secs % 60
@@ -216,8 +218,12 @@ def time_format(secs) :
 def game_over(clock, screen):
     pressed = False
     font1 = pygame.font.SysFont("arial", 40) 
-    button_replay = Button("Play Again", 60, 650, 180, 60, True, screen)
-    button_quit = Button("Quit", 300, 650, 180, 60, True, screen)
+    button_replay = Button("Play Again", 20, 650, 110, 60, True, screen)
+    button_newPuzzle = Button("New Puzzle", 150, 650, 110, 60, True, screen)
+    button_home = Button("Home", 280, 650, 110, 60, True, screen)
+    button_quit = Button("Quit", 410, 650, 110, 60, True, screen)
+    buttons = [button_replay, button_newPuzzle, button_home, button_quit]
+
     while not pressed :
         clock.tick(10)
         for event in pygame.event.get() :
@@ -225,6 +231,10 @@ def game_over(clock, screen):
                 pygame.quit()
         if button_replay.check_click() :
             main()
+        if button_newPuzzle.check_click() :
+            pass
+        if button_home.check_click():
+            pass    
         if button_quit.check_click() :
             pygame.quit()
         text = font1.render("W E L L   D O N E", 1, ("dark green"))
@@ -240,6 +250,11 @@ def main() :
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("arial", 20) 
     board = Grid(9, 9, 540, 540)
+    button_restart = Button("Restart", 20, 650, 110, 60, True, screen)
+    button_autosolve = Button("Solve", 150, 650, 110, 60, True, screen)
+    button_home = Button("Home", 280, 650, 110, 60, True, screen)
+    button_quit = Button("Quit", 410, 650, 110, 60, True, screen)
+    buttons = [button_restart, button_autosolve, button_home, button_quit]
     key = None
     run = True
     start = time.time()
@@ -328,6 +343,14 @@ def main() :
                         # run = False
 
             if event.type == pygame.MOUSEBUTTONDOWN :
+                if button_restart.check_click() :
+                    main()
+                if button_autosolve.check_click() :
+                    pass
+                if button_home.check_click():
+                    pass    
+                if button_quit.check_click() :
+                    pygame.quit()
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
                 clicked = board.click(pos)                      # feeds that tuple to click method of board instance
                 if clicked :                                    # which returns True/False Edit: it actually returns a tuple (==> True) or None (==> False)
@@ -338,7 +361,7 @@ def main() :
             board.sketch(key)
             key = None
 
-        redraw_window(screen, board, play_time, strikes, font)
+        redraw_window(screen, board, play_time, strikes, font, buttons)
         # loop time measurement        
         if len(fpsAvg) < 100 :
             fpsAvg.append(round(1/(time.time() - startloop)))
@@ -363,7 +386,7 @@ pygame.quit()
 # Added - behaviour for strike - red bold number fading out
 # Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
 # Fixed - if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
-# game over screen with quit and replay buttons
+# Added - game over screen with quit and replay buttons
 # random solvable boards
 # difficulty levels with different amount of zeroes on board
-# maybe different sizes - first find existing sudokus with 1-6 and 1-16 ranges
+# maybe different sizes - first research existing sudokus with 1-6 and 1-16 ranges
