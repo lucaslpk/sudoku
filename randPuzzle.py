@@ -23,4 +23,13 @@ def generatePuzzle(gameSize=9) :
 def generateAndPrint() :
     print_board(generatePuzzle())
 
-generateAndPrint()
+def puzzleAtLevel(blanks) :
+    puzzle = generatePuzzle()
+    zeroes = 0
+    while zeroes < blanks :
+        i, j = randint(0,8), randint(0,8)
+        if puzzle[i][j] != 0 :
+            puzzle[i][j] = 0
+            zeroes += 1 
+
+    return puzzle
