@@ -1,22 +1,11 @@
 import pygame
 import time
 from solver import solve, is_valid
+from randPuzzle import puzzleAtLevel
 pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
 screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
 clock = pygame.time.Clock()
-
-puzzle = [
-    [0,0,2,0,8,0,0,6,0],
-    [0,5,6,9,1,7,0,3,0],
-    [0,4,0,0,5,0,8,7,1],
-    [0,9,0,0,0,0,6,0,0],
-    [6,7,1,0,9,5,2,0,0],
-    [0,0,0,0,2,0,1,0,0],
-    [1,6,7,0,3,0,5,9,0],
-    [4,8,0,0,7,0,3,0,0],
-    [0,2,5,4,6,0,0,0,0]
-    ]
 
 class Grid :
 
@@ -219,7 +208,7 @@ def time_format(secs) :
     T_format = " " + str(min) + "m:" + str(sec) + "s"
     return T_format 
 
-def init(clock, screen) :
+def init() :
     pressed = False
     font1 = pygame.font.SysFont("arial", 40) 
     screen.fill((255,255,255)) 
@@ -236,13 +225,13 @@ def init(clock, screen) :
             if event.type == pygame.QUIT :
                 pygame.quit()
         if button_easy.check_click() :
-            main()
+            main(puzzleAtLevel(43))
         if button_normal.check_click() :
-            pass
+            main(puzzleAtLevel(50))
         if button_hard.check_click():
-            pass    
+            main(puzzleAtLevel(54))    
         if button_expert.check_click():
-            pass
+            main(puzzleAtLevel(58))
         if button_quit.check_click() :
             pygame.quit()
         text = font1.render("Choose difficulty level:", 1, ("dark green"))
@@ -252,7 +241,7 @@ def init(clock, screen) :
 
         pygame.display.update()
 
-def game_over(clock, screen):
+def game_over():
     pressed = False
     font1 = pygame.font.SysFont("arial", 40) 
     button_replay = Button("Play Again", 20, 650, 110, 60, True, screen)
@@ -281,7 +270,7 @@ def game_over(clock, screen):
 
         pygame.display.update()
 
-def main() :
+def main(puzzle) :
     pygame.display.set_caption("Sudoku")
     font = pygame.font.SysFont("arial", 20) 
     board = Grid(puzzle,9, 9, 540, 540)
@@ -304,6 +293,7 @@ def main() :
         for event in pygame.event.get() :           # this loop will continously check of any event has happened and filter throughjt the list of defined events
             if event.type == pygame.QUIT :
                 run = False
+                pygame.quit()
             if event.type == pygame.KEYDOWN :       # if event is a key press (or here keydown) check with the following which jey and what to do
                 if event.key in (pygame.K_1, pygame.K_KP1) :        # REFACTOR with case and with keys = pygame.key.get_pressed() z pierwszego video albo raczej jednokrotne nacisniecie bo pressed jest jak trzymiesz.
                     key = 1 
@@ -373,17 +363,17 @@ def main() :
                     key = None                                                                                                                                                                                
 
                     if board.is_finished():                     # need something more 'gameovery' with replay buttons etc.
-                        game_over(clock, screen)
+                        game_over()
                         print("Game Over")
                         # run = False
 
             if event.type == pygame.MOUSEBUTTONDOWN :
                 if button_restart.check_click() :
-                    main()
+                    main(puzzle)
                 if button_autosolve.check_click() :
                     pass
                 if button_home.check_click():
-                    pass    
+                    init()    
                 if button_quit.check_click() :
                     pygame.quit()
                 pos = pygame.mouse.get_pos()                    # returns a tuple of 2 ints
@@ -410,7 +400,7 @@ def main() :
         # end time measurement
         pygame.display.update()
         
-init(clock, screen)
+init()
 #main()
 pygame.quit()
 
