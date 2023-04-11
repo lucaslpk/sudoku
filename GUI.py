@@ -4,8 +4,7 @@ from solver import solve, is_valid
 pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
 
-class Grid :
-    board = [
+puzzle = [
     [0,0,2,0,8,0,0,6,0],
     [0,5,6,9,1,7,0,3,0],
     [0,4,0,0,5,0,8,7,1],
@@ -17,9 +16,12 @@ class Grid :
     [0,2,5,4,6,0,0,0,0]
     ]
 
-    def __init__(self, rows, cols, width, height):
+class Grid :
+
+    def __init__(self, board, rows, cols, width, height):
+        self.board = board
         self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment...
-        self.cols = cols
+        self.cols = cols            # EDIT 11/04/23: now that an external board is passed to constructor as argument we could change to len(board) & len(board[0])
         self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(self.cols)] for i in range(self.rows)]  
         self.width = width
         self.height = height
@@ -249,7 +251,7 @@ def main() :
     pygame.display.set_caption("Sudoku")
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("arial", 20) 
-    board = Grid(9, 9, 540, 540)
+    board = Grid(puzzle,9, 9, 540, 540)
     button_restart = Button("Restart", 20, 650, 110, 60, True, screen)
     button_autosolve = Button("Solve", 150, 650, 110, 60, True, screen)
     button_home = Button("Home", 280, 650, 110, 60, True, screen)
