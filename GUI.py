@@ -92,10 +92,10 @@ class Grid :
             self.cubes[row][col].set_temp(0)
 
     def is_finished(self) :
-        # for i in range(self.rows) :
-        #     for j in range(self.cols) :
-        #         if self.cubes[i][j].value == 0 :
-        #             return False
+        for i in range(self.rows) :
+            for j in range(self.cols) :
+                if self.cubes[i][j].value == 0 :
+                    return False
         return True
 
 class Cube :
