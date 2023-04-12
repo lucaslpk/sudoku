@@ -3,6 +3,7 @@ import time
 from solver import solve, is_valid, find_empty
 from randPuzzle import puzzleAtLevel
 from random import randint
+from copy import deepcopy   # 12/04/23: Note to Self - this whole "passing by reference" business can cause some really annoying issues. It is absolutely necessary to understand, in which cases you cannot pass-by-ref and need a 'real' copy of data !!!    
 pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
 screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
@@ -18,7 +19,7 @@ class Grid :
         self.width = width
         self.height = height
         self.model = board           # model is a name of a temporary 9x9 board with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
-        self.selected = None        # this will hold a tuple with selected cube coordinates
+        self.selected = (0,0)        # this will hold a tuple with selected cube coordinates, initialized as None. EDIT 12/04/23 changed initial state to (0,0) to prevent a BUG -> if you clicked Restart button after autosolve was on, i, j = board.selected was looking for a tuple where there was None
 
     def draw(self, screen):
         # Draw Grid Lines
@@ -227,13 +228,13 @@ def init() :
             if event.type == pygame.QUIT :
                 pygame.quit()
         if button_easy.check_click() :
-            main(puzzleAtLevel(43))
+            main(puzzleAtLevel(43), 43)
         if button_normal.check_click() :
-            main(puzzleAtLevel(50))
+            main(puzzleAtLevel(50), 50)
         if button_hard.check_click():
-            main(puzzleAtLevel(54))    
+            main(puzzleAtLevel(54), 54)    
         if button_expert.check_click():
-            main(puzzleAtLevel(58))
+            main(puzzleAtLevel(58), 58)
         if button_quit.check_click() :
             pygame.quit()
         text = font1.render("Choose difficulty level:", 1, ("dark green"))
@@ -243,7 +244,7 @@ def init() :
 
         pygame.display.update()
 
-def game_over():
+def game_over(puzzle,currDiffLvl):
     pressed = False
     font1 = pygame.font.SysFont("arial", 40) 
     button_replay = Button("Play Again", 20, 650, 110, 60, True, screen)
@@ -258,11 +259,11 @@ def game_over():
             if event.type == pygame.QUIT :
                 pygame.quit()
         if button_replay.check_click() :
-            main()
+            main(puzzle, currDiffLvl)
         if button_newPuzzle.check_click() :
-            pass
+            main(puzzleAtLevel(currDiffLvl), currDiffLvl) # 12/04/23 although we had to pass 'current difficulty level' variable from init() -> main() -> game_over() -> main() etc. this line is the only place this var is really needed - to be able to generate new puzzle at the same difficulty level.
         if button_home.check_click():
-            pass    
+            init()    
         if button_quit.check_click() :
             pygame.quit()
         text = font1.render("W E L L   D O N E", 1, ("dark green"))
@@ -272,10 +273,10 @@ def game_over():
 
         pygame.display.update()
 
-def main(puzzle) :
+def main(puzzle, currDiffLvl) :
     pygame.display.set_caption("Sudoku")
     font = pygame.font.SysFont("arial", 20) 
-    board = Grid(puzzle,9, 9, 540, 540)
+    board = Grid(deepcopy(puzzle),9, 9, 540, 540)
     button_restart = Button("Restart", 20, 650, 110, 60, True, screen)
     button_autosolve = Button("Solve", 150, 650, 110, 60, True, screen)
     button_home = Button("Home", 280, 650, 110, 60, True, screen)
@@ -332,7 +333,7 @@ def main(puzzle) :
                     board.clear()                             
                     key = None
                 if event.key in (pygame.K_UP,pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT) :
-                    if not board.selected:
+                    if not board.selected:                                                      # 12/04/23: this now seems an obsolete legacy code, as board.selected is now initialized to != None
                         board.select(0,0)
                     else :
                         row, col = board.selected
@@ -383,7 +384,7 @@ def main(puzzle) :
 
             if event.type == pygame.MOUSEBUTTONDOWN :
                 if button_restart.check_click() :
-                    main(puzzle)
+                    main(puzzle, currDiffLvl)
                 if button_autosolve.check_click() :
                     autoSolving = True
                     print("autosolving on")
@@ -404,11 +405,9 @@ def main(puzzle) :
         redraw_window(screen, board, play_time, strikes, font, buttons)
 
         if gameOverTimeOut > 0 :
-            gameOverTimeOut -= 4                                # 12/04/23 if it only changes by -=1 it will hang on gOTO == zero
-            print("gameOverTimeOut in '-=1 if'=", gameOverTimeOut) 
+            gameOverTimeOut -= 4                                # 12/04/23 if it only changes by -=1 it will hang on gOTO == zero plus it takes too long wtih initial value of 255
         elif gameOverTimeOut < 0 :
-            print("gameOverTimeOut in 'else' =", gameOverTimeOut)
-            game_over()
+            game_over(puzzle, currDiffLvl)
 
         # loop time measurement        
         if len(fpsAvg) < 100 :
@@ -424,7 +423,6 @@ def main(puzzle) :
         pygame.display.update()
         
 init()
-#main()
 pygame.quit()
 
 # list of ideas:
