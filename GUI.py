@@ -60,6 +60,7 @@ class Grid :
             self.cubes[row][col].set(val)
             self.update_model()
             if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
+                self.cubes[row][col].wrongNoColorGB = 255                   # 12/04/23 fixes the bug where red No continues to appear on screen even after overwritten with a correct, black No
                 self.cubes[row][col].cubeColorRB = 0
                 self.board[row][col] = self.cubes[row][col].value               # edit 12.04.23 - cube values were tracked in 'cube.value' property only, board.board WAS NOT updated as numbers where written in black (needed for autosolve animation as model is passed by ref)
                 # print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and similar line in 'else' below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
@@ -426,11 +427,11 @@ init()
 pygame.quit()
 
 # list of ideas:
-# Added - autosolve button with animation --> 12/04/23 Not a very elegant solution but it only checks if board is finished after Enter key is pressed (legacy solution) instead every main loop run
+# Added - autosolve button with animation --> 12/04/23 Not a very elegant solution but it works. It only checks if board is finished after Enter key is pressed (legacy solution) instead every main loop run
 # Added - multiple "penciled in" numbers
 # Added - behaviour for success - fading out green Cube
 # Added - behaviour for strike - red bold number fading out
-# Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
+# Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature EDIT 12/04/23: I decided it is a BUG and I fixed it (with 1 line)
 # Fixed - if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
 # Added - game over screen with quit and replay buttons
 # Added - random solvable boards
