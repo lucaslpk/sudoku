@@ -1,7 +1,8 @@
 import pygame
 import time
-from solver import solve, is_valid
+from solver import solve, is_valid, find_empty
 from randPuzzle import puzzleAtLevel
+from random import randint
 pygame.font.init()          #pygame tutorial says we need to initialize the whole font module
 gameSize = (9, 9)
 screen = pygame.display.set_mode((540,750))    #  Size is a tuple.
@@ -10,13 +11,13 @@ clock = pygame.time.Clock()
 class Grid :
 
     def __init__(self, board, rows, cols, width, height):
-        self.board = board
+        self.board = board 
         self.rows = rows            #this will always be 9 in a classic sudoku, but if we later want to do a 2x3 or 4x4 sudoku as an experiment...
         self.cols = cols            # EDIT 11/04/23: now that an external board is passed to constructor as argument we could change to len(board) & len(board[0])
         self.cubes = [[Cube(self.board[i][j], i, j, width, height) for j in range(self.cols)] for i in range(self.rows)]  
         self.width = width
         self.height = height
-        self.model = None           # model is a name of a temporary 9x9 board with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
+        self.model = board           # model is a name of a temporary 9x9 board with cube value that needs to be checked. Model is passed to is_valid() and solve() to check if it's: 1) valid in terms of rows, columns and 3x3 squares 2) still leads to a valid solution
         self.selected = None        # this will hold a tuple with selected cube coordinates
 
     def draw(self, screen):
@@ -59,6 +60,7 @@ class Grid :
             self.update_model()
             if is_valid(self.model, val, (row,col)) and solve(self.model) : # if both checks come back positive you got your number
                 self.cubes[row][col].cubeColorRB = 0
+                self.board[row][col] = self.cubes[row][col].value               # edit 12.04.23 - cube values were tracked in 'cube.value' property only, board.board WAS NOT updated as numbers where written in black (needed for autosolve animation as model is passed by ref)
                 # print(is_valid(self.model, val, (row,col)), solve(self.model), 111) # this line and similar line in 'else' below ==> "print debugging" that helped me trouble shoot the issue with is_valid() method imported from solver file
                 return True
             else :                                                          # or go back to board/model state before
@@ -281,6 +283,8 @@ def main(puzzle) :
     buttons = [button_restart, button_autosolve, button_home, button_quit]
     key = None
     run = True
+    autoSolving = False
+    gameOverTimeOut = 0
     start = time.time()
     strikes = 0
     startloop = 0
@@ -290,7 +294,18 @@ def main(puzzle) :
     while run :
         clock.tick(255)
         play_time = round(time.time() - start)
+
         for event in pygame.event.get() :           # this loop will continously check of any event has happened and filter throughjt the list of defined events
+            if autoSolving and not board.is_finished():
+                pos = find_empty(board.board)
+                if pos :
+                    board.select(pos[0], pos[1])
+                    key = randint(1,9)
+                    board.sketch(key)
+                    newevent = pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN) #create the event
+                    pygame.event.post(newevent)
+                    key = None
+                               
             if event.type == pygame.QUIT :
                 run = False
                 pygame.quit()
@@ -357,21 +372,21 @@ def main(puzzle) :
                             pass
                         else :
                             print("Wrong")
-                            strikes += 1
+                            if not autoSolving :
+                                strikes += 1
                     else :
                         board.cubes[i][j].tempErrTimeOut = 255
                     key = None                                                                                                                                                                                
 
-                    if board.is_finished():                     # need something more 'gameovery' with replay buttons etc.
-                        game_over()
-                        print("Game Over")
-                        # run = False
+                    if board.is_finished():
+                        gameOverTimeOut = 255    
 
             if event.type == pygame.MOUSEBUTTONDOWN :
                 if button_restart.check_click() :
                     main(puzzle)
                 if button_autosolve.check_click() :
-                    pass
+                    autoSolving = True
+                    print("autosolving on")
                 if button_home.check_click():
                     init()    
                 if button_quit.check_click() :
@@ -387,6 +402,14 @@ def main(puzzle) :
             key = None
 
         redraw_window(screen, board, play_time, strikes, font, buttons)
+
+        if gameOverTimeOut > 0 :
+            gameOverTimeOut -= 4                                # 12/04/23 if it only changes by -=1 it will hang on gOTO == zero
+            print("gameOverTimeOut in '-=1 if'=", gameOverTimeOut) 
+        elif gameOverTimeOut < 0 :
+            print("gameOverTimeOut in 'else' =", gameOverTimeOut)
+            game_over()
+
         # loop time measurement        
         if len(fpsAvg) < 100 :
             fpsAvg.append(round(1/(time.time() - startloop)))
@@ -405,13 +428,13 @@ init()
 pygame.quit()
 
 # list of ideas:
-# autosolve button with animation
+# Added - autosolve button with animation --> 12/04/23 Not a very elegant solution but it only checks if board is finished after Enter key is pressed (legacy solution) instead every main loop run
 # Added - multiple "penciled in" numbers
 # Added - behaviour for success - fading out green Cube
 # Added - behaviour for strike - red bold number fading out
 # Note: there is a funny efect if you input correct solution after wrong one very quickly, but not sure if it's a bug or a feature
 # Fixed - if you (even by mistake) try to overwrite a black number it counts as an error and adds 1 to strikes' count - that is a BUG. Edit: this happens because in this case board.place() method returns a default value (None) which is evaluated to False in RETURN key event
 # Added - game over screen with quit and replay buttons
-# random solvable boards
-# difficulty levels with different amount of zeroes on board
+# Added - random solvable boards
+# Added - difficulty levels with different amount of zeroes on board
 # maybe different sizes - first research existing sudokus with 1-6 and 1-16 ranges
